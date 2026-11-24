@@ -1,0 +1,72 @@
+{
+  "questions": [
+    {
+      "q": "1. What is the capital of India?",
+      "options": [
+        "New Delhi",
+        "Mumbai",
+        "Kolkata",
+        "Chennai"
+      ],
+      "correct": 0
+    },
+    {
+      "q": "2. What are the number of states in India?",
+      "options": [
+        "28",
+        "29",
+        "30",
+        "31"
+      ],
+      "correct": 1
+    },
+    {
+      "q": "Capital of mp",
+      "options": [
+        "washington",
+        "indoree",
+        "bhopal",
+        "russia"
+      ],
+      "correct": 2
+    }
+  ],
+  "scores": [
+    {
+      "name": "Aman",
+      "roll": "Btit2601123",
+      "score": "0 / 20",
+      "date": "11/18/2026, 10:10:03 PM"
+    },
+    {
+      "name": "Samarth",
+      "roll": "BTIT26O1124",
+      "score": "20 / 20"
+    },
+    {
+      "name": "Himanshu",
+      "roll": "BTIT26O1125",
+      "score": "10 / 20"
+    },
+    {
+      "name": "VASU",
+      "roll": "BTIR26O1050",
+      "score": "0 / 20"
+    },
+    {
+      "name": "VASU",
+      "roll": "BTIR26O1050",
+      "score": "20 / 20"
+    },
+    {
+      "name": "david",
+      "roll": "BTIR261028",
+      "score": "20 / 20"
+    },
+    {
+      "name": "samaksh",
+      "roll": "BTIT26O1124",
+      "score": "20 / 30"
+    }
+  ]
+}

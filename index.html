@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Online Quiz Portal</title>
+    <style>
+        /* Basic CSS layout - nothing too fancy */
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f4f9;    
+            margin: 0; 
+            padding: 30px; 
+        } 
+        
+        .container { 
+            background-color: white; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            border: 1px solid #cccccc; 
+            border-radius: 8px; 
+        }
+
+        h2 { text-align: center; color: #333333; }
+        p { text-align: center; color: #666666; font-size: 14px; }
+
+        /* Simple tab buttons */
+        .tabs { text-align: center; margin-bottom: 20px; }
+        .tab-btn { 
+            padding: 10px 15px; 
+            background-color: #e0e0e0; 
+            border: 1px solid #cccccc; 
+            cursor: pointer; 
+            border-radius: 4px;
+        }
+        .tab-btn.active { 
+            background-color: #0056b3; 
+            color: white; 
+            border-color: #0056b3; 
+        }
+
+        /* Basic inputs and forms */
+        input[type="text"], select { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+            border: 1px solid #aaaaaa; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+
+        .btn { 
+            background-color: #28a745; 
+            color: white; 
+            padding: 12px; 
+            border: none; 
+            width: 100%; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-size: 16px;
+        }
+        .btn:hover { background-color: #218838; }
+
+        .hidden { display: none; }
+
+        /* Basic table for scores */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #dddddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+
+        .radio-label { display: block; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Online Quiz Portal</h2>
+    <p>Project by Samarth Singh & Sangam Kumar Pandey</p>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-student" onclick="switchRole('student')">Student</button>
+        <button class="tab-btn" id="tab-teacher" onclick="switchRole('teacher')">Instructor</button>
+        <button class="tab-btn" id="tab-admin" onclick="switchRole('admin')">Admin</button>
+    </div>
+
+    <!-- 1. STUDENT SECTION -->
+    <div id="student-section">
+        <div id="student-setup">
+            <h3>Login</h3>
+            <label>Name:</label>
+            <input type="text" id="stu-name" placeholder="Enter your name">
+            
+            <label>Roll Number:</label>
+            <input type="text" id="stu-roll" placeholder="e.g. BTIT26O1123">
+            
+            <button class="btn" onclick="loadQuiz()">Start Quiz</button>
+        </div>
+        
+        <div id="quiz-area" class="hidden">
+            <div id="question-container"></div>
+            <button class="btn" onclick="submitQuiz()">Submit Answers</button>
+        </div>
+    </div>
+
+    <!-- 2. TEACHER SECTION -->
+    <div id="teacher-section" class="hidden">
+        <h3>Add New Question</h3>
+        <label>Question:</label>
+        <input type="text" id="new-q" placeholder="Type question here">
+        
+        <input type="text" id="opt0" placeholder="Option 1">
+        <input type="text" id="opt1" placeholder="Option 2">
+        <input type="text" id="opt2" placeholder="Option 3">
+        <input type="text" id="opt3" placeholder="Option 4">
+        
+        <label>Correct Answer:</label>
+        <select id="new-correct">
+            <option value="0">Option 1</option>
+            <option value="1">Option 2</option>
+            <option value="2">Option 3</option>
+            <option value="3">Option 4</option>
+        </select>
+        
+        <button class="btn" style="background-color: #0056b3;" onclick="addQuestionToServer()">Save Question</button>
+        
+        <hr>
+
+        <h3>Student Scores</h3>
+        <table>
+            <thead><tr><th>Name</th><th>Roll No</th><th>Score</th></tr></thead>
+            <tbody id="scores-table"></tbody>
+        </table>
+    </div>
+
+    <!-- 3. ADMIN SECTION -->
+    <div id="admin-section" class="hidden">
+        <h3 style="text-align: center;">Database Info</h3>
+        <p style="text-align: center;">Total Live Questions on Server:</p>
+        <h1 id="q-count" style="text-align: center; color: #0056b3; font-size: 50px;">0</h1>
+    </div>
+</div>
+
+<script>
+    // array to store questions from server
+    let activeQuestions = [];
+
+    // function to switch between tabs
+    function switchRole(role) {
+        document.getElementById("student-section").classList.add("hidden");
+        document.getElementById("teacher-section").classList.add("hidden");
+        document.getElementById("admin-section").classList.add("hidden");
+        
+        document.getElementById("tab-student").classList.remove("active");
+        document.getElementById("tab-teacher").classList.remove("active");
+        document.getElementById("tab-admin").classList.remove("active");
+        
+        document.getElementById(role + "-section").classList.remove("hidden");
+        document.getElementById("tab-" + role).classList.add("active");
+
+        if (role === 'teacher') loadScoresTable();
+        if (role === 'admin') loadAdminStats();
+    }
+
+    // fetch questions for the student
+    async function loadQuiz() {
+        let name = document.getElementById("stu-name").value;
+        let roll = document.getElementById("stu-roll").value;
+
+        if (name === "" || roll === "") {
+            alert("Please enter Name and Roll No");
+            return;
+        }
+        
+        const response = await fetch('/api/questions');
+        activeQuestions = await response.json();
+        
+        document.getElementById("student-setup").classList.add("hidden");
+        document.getElementById("quiz-area").classList.remove("hidden");
+        
+        let html = "";
+        // loop through questions and display them
+        activeQuestions.forEach((q, i) => {
+            html += `<h3>${q.q}</h3>`;
+            q.options.forEach((opt, j) => {
+                html += `<label class="radio-label"><input type="radio" name="q${i}" value="${j}"> ${opt}</label>`;
+            });
+            html += `<hr>`;
+        });
+        document.getElementById("question-container").innerHTML = html;
+    }
+
+    // calculate score and send to backend
+    async function submitQuiz() {
+        let score = 0;
+        
+        activeQuestions.forEach((q, i) => {
+            let selected = document.querySelector(`input[name="q${i}"]:checked`);
+            // add 10 marks if correct
+            if (selected && parseInt(selected.value) === q.correct) {
+                score = score + 10;
+            }
+        });
+
+        const payload = {
+            name: document.getElementById("stu-name").value,
+            roll: document.getElementById("stu-roll").value,
+            score: score + " / " + (activeQuestions.length * 10)
+        };
+
+        const response = await fetch('/api/save-score', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+        
+        const serverData = await response.json();
+        
+        document.getElementById("quiz-area").innerHTML = `
+            <h2>Quiz Complete!</h2>
+            <h3>Your Score: ${payload.score}</h3>
+            <p>${serverData.message}</p>
+            <button class="btn" onclick="location.reload()">Go Back</button>
+        `;
+    }
+
+    // send new question to backend
+    async function addQuestionToServer() {
+        const payload = {
+            q: document.getElementById("new-q").value,
+            options: [ 
+                document.getElementById("opt0").value, 
+                document.getElementById("opt1").value, 
+                document.getElementById("opt2").value, 
+                document.getElementById("opt3").value 
+            ],
+            correct: parseInt(document.getElementById("new-correct").value)
+        };
+
+        await fetch('/api/add-question', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+         
+        alert("Saved to database!");
+        // clear the boxes
+        document.getElementById("new-q").value = "";
+        document.getElementById("opt0").value = "";
+        document.getElementById("opt1").value = "";
+        document.getElementById("opt2").value = "";
+        document.getElementById("opt3").value = "";
+    }
+
+    // load scores into the teacher table
+    async function loadScoresTable() {
+        const response = await fetch('/api/scores');
+        const scores = await response.json();
+        
+        let html = "";
+        scores.forEach(s => { 
+            html += `<tr><td>${s.name}</td><td>${s.roll}</td><td><b>${s.score}</b></td></tr>`; 
+        });
+        
+        if(html === "") {
+            document.getElementById("scores-table").innerHTML = "<tr><td colspan='3'>No scores yet.</td></tr>";
+        } else {
+            document.getElementById("scores-table").innerHTML = html;
+        }
+    }
+
+    // load question count for admin
+    async function loadAdminStats() {
+        const response = await fetch('/api/questions');
+        const questions = await response.json();
+        document.getElementById("q-count").innerText = questions.length;
+    }
+</script>
+
+</body>
+</html> 
